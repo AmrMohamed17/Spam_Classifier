@@ -11,6 +11,7 @@
             --light: #f8f9fa;
             --dark: #343a40;
             --text: #2d3748;
+            --warning: #f39c12;
         }
         
         body {
@@ -168,6 +169,11 @@
         .not-spam {
             background-color: rgba(46, 204, 113, 0.1);
             border: 2px solid var(--success);
+        }
+        
+        .empty-input {
+            background-color: rgba(243, 156, 18, 0.1);
+            border: 2px solid var(--warning);
         }
         
         .result-icon {
@@ -335,7 +341,7 @@
     <footer>
         <p>© 2025 Spam Detective | Protecting Your Inbox</p>
     </footer>
-
+    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const form = document.getElementById('emailForm');
@@ -352,11 +358,12 @@
                 winner: "YOU ARE OUR LUCKY WINNER! You've won $5,000,000 in our international lottery! To claim your prize, send us your personal details and a processing fee of $100."
             };
             
-            // Add sample content to textarea
+            // Add sample content to textarea - UPDATED to clear the field first
             document.querySelectorAll('.sample-button').forEach(button => {
                 button.addEventListener('click', function() {
                     const sampleType = this.getAttribute('data-sample');
-                    textArea.value += (textArea.value ? "\n\n" : "") + sampleContent[sampleType];
+                    // Clear the textarea first before adding sample content
+                    textArea.value = sampleContent[sampleType];
                 });
             });
             
@@ -382,6 +389,16 @@
                     setTimeout(function() {
                         loader.style.display = 'none';
                         checkButton.disabled = false;
+                        
+                        // Check if the textarea is empty - NEW CODE
+                        if (!textArea.value.trim()) {
+                            resultContainer.className = 'result visible empty-input';
+                            resultContainer.innerHTML = `
+                                <h2><span class="result-icon">❓</span> <span style="color: var(--warning);">No Content to Analyze</span></h2>
+                                <p>Please paste an email or try one of our sample messages to analyze.</p>
+                            `;
+                            return;
+                        }
                         
                         // Simple frontend-only spam detection for demo
                         const text = textArea.value.toLowerCase();
