@@ -21,7 +21,6 @@ cs50
 cssselect
 Cython
 daal4py
-datashape
 dlib
 docker-pycreds
 EditorConfig
