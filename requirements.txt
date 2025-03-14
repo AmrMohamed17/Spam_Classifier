@@ -13,7 +13,6 @@ brotlipy
 cachelib
 cachetools
 check50
-clyent
 cmake
 coloredlogs
 constantly
@@ -72,7 +71,6 @@ munkres
 mypy-extensions
 Naked
 namex
-navigator-updater
 ndindex
 nltk
 numba
