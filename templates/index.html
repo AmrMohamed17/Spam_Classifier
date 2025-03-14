@@ -1,42 +1,418 @@
 <!DOCTYPE html>
 <html>
-
 <head>
-    <title>
-        Email Spam Classifier
-    </title>
+    <title>Spam Detective | Email Analysis Tool</title>
     <style>
-      body {
-          text-align: center;
-      }
-
-      button {
-          color: aliceblue;
-          background-color: blue;
-      }
-  </style>
+        :root {
+            --primary: #4a6fa5;
+            --secondary: #166088;
+            --danger: #e74c3c;
+            --success: #2ecc71;
+            --light: #f8f9fa;
+            --dark: #343a40;
+            --text: #2d3748;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f5f9;
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .container {
+            width: 90%;
+            max-width: 800px;
+            margin: 2rem auto;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            background-color: white;
+            overflow: hidden;
+            transition: transform 0.3s ease;
+        }
+        
+        .container:hover {
+            transform: translateY(-5px);
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 2rem;
+            text-align: center;
+            position: relative;
+        }
+        
+        h1 {
+            margin: 0;
+            font-size: 2.5rem;
+            letter-spacing: 1px;
+        }
+        
+        .subtitle {
+            opacity: 0.9;
+            font-weight: 300;
+            margin-top: 0.5rem;
+        }
+        
+        .icon {
+            font-size: 2rem;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+        
+        .content {
+            padding: 2rem;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid #e1e4e8;
+            border-radius: 8px;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 200px;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+            font-family: inherit;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.2);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+            justify-content: center;
+        }
+        
+        button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+        }
+        
+        button:hover {
+            background-color: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        .reset-link {
+            background-color: #f8f9fa;
+            color: var(--text);
+            text-decoration: none;
+            padding: 0.8rem 1.5rem;
+            font-size: 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid #e1e4e8;
+            font-weight: 600;
+        }
+        
+        .reset-link:hover {
+            background-color: #e9ecef;
+        }
+        
+        .result {
+            margin-top: 2rem;
+            text-align: center;
+            padding: 1.5rem;
+            border-radius: 8px;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+        
+        .result.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        .result h2 {
+            margin: 0;
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .spam {
+            background-color: rgba(231, 76, 60, 0.1);
+            border: 2px solid var(--danger);
+        }
+        
+        .not-spam {
+            background-color: rgba(46, 204, 113, 0.1);
+            border: 2px solid var(--success);
+        }
+        
+        .result-icon {
+            font-size: 2rem;
+            margin-right: 0.5rem;
+        }
+        
+        .detective {
+            position: absolute;
+            bottom: -20px;
+            right: 20px;
+            font-size: 3rem;
+            transform: rotate(10deg);
+        }
+        
+        .loader {
+            display: none;
+            width: 50px;
+            height: 50px;
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid var(--primary);
+            border-radius: 50%;
+            margin: 2rem auto;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .sample-triggers {
+            margin: 1.5rem 0;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.8rem;
+            justify-content: center;
+        }
+        
+        .sample-button {
+            background-color: #5c7cfa;
+            color: white;
+            border: none;
+            padding: 0.7rem 1.2rem;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+        }
+        
+        .sample-button:hover {
+            background-color: #4263eb;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        
+        .sample-button:active {
+            transform: translateY(0);
+        }
+        
+        .sample-button:before {
+            content: "➕";
+            margin-right: 5px;
+            font-size: 1rem;
+        }
+        
+        .samples-label {
+            display: block;
+            text-align: center;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: var(--secondary);
+        }
+        
+        .tips-section {
+            margin-top: 2rem;
+            background-color: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary);
+        }
+        
+        .tips-section h3 {
+            margin-top: 0;
+            color: var(--primary);
+        }
+        
+        .tips-list {
+            margin: 0;
+            padding-left: 1.5rem;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 1.5rem;
+            font-size: 0.9rem;
+            color: #6c757d;
+            margin-top: auto;
+        }
+    </style>
 </head>
-
 <body>
-  <h1>Email Spam Classifier</h1>
-  <div>
-      <form method="POST" action="/predict">
-          <textarea rows="12" cols="60" name="email-content" placeholder="Enter your email here"
-          value="{{ text }}">{{ text }}</textarea>
-          <div>
-              <button type="submit">Check Spam</button>
-              <a href="/">Reset</a>
-          </div>
-      </form>
-      <div>
-        {% if prediction %}
-        {% if prediction == 1 %}
-        <h2 style="color: red">Spam</h2>
-        {% else %}
-        <h2 style="color: green">Not Spam</h2>
-        {% endif %}
-        {% endif %}
-        <!-- <p id="display"></p> -->
+    <div class="container">
+        <header>
+            <h1>🕵️‍♂️ Spam Detective</h1>
+            <p class="subtitle">Smart Email Analysis Tool</p>
+            <div class="detective">🔍</div>
+        </header>
+        
+        <div class="content">
+            <form method="POST" action="/predict" id="emailForm">
+                <textarea rows="12" name="email-content" id="email-content" 
+                    placeholder="Paste your suspicious email here for analysis...">{{ text }}</textarea>
+                
+                <div class="sample-triggers-container">
+                    <div class="samples-label">Try with sample content:</div>
+                    <div class="sample-triggers">
+                        <button type="button" class="sample-button" data-sample="urgent">Urgent Request</button>
+                        <button type="button" class="sample-button" data-sample="offer">Special Offer</button>
+                        <button type="button" class="sample-button" data-sample="money">Money Transfer</button>
+                        <button type="button" class="sample-button" data-sample="winner">Prize Winner</button>
+                    </div>
+                </div>
+                
+                <div class="button-group">
+                    <button type="submit" id="checkButton">
+                        <span class="icon">🔍</span> Analyze Email
+                    </button>
+                    <a href="/" class="reset-link">
+                        <span class="icon">↻</span> Reset
+                    </a>
+                </div>
+            </form>
+            
+            <div class="loader" id="loader"></div>
+            
+            <div id="resultContainer" class="result {% if prediction %}visible{% endif %} {% if prediction == 1 %}spam{% elif prediction == 0 %}not-spam{% endif %}">
+                {% if prediction %}
+                {% if prediction == 1 %}
+                <h2><span class="result-icon">⚠️</span> <span style="color: var(--danger);">Spam Detected!</span></h2>
+                <p>This email shows characteristics commonly found in spam messages.</p>
+                {% else %}
+                <h2><span class="result-icon">✅</span> <span style="color: var(--success);">Not Spam</span></h2>
+                <p>This email appears to be legitimate. Always stay vigilant!</p>
+                {% endif %}
+                {% endif %}
+            </div>
+            
+            <div class="tips-section">
+                <h3>Spam Detection Tips</h3>
+                <ul class="tips-list">
+                    <li>Be wary of urgent requests or threats</li>
+                    <li>Check for poor grammar and spelling errors</li>
+                    <li>Hover over links before clicking</li>
+                    <li>Be suspicious of unexpected attachments</li>
+                </ul>
+            </div>
+        </div>
     </div>
+    
+    <footer>
+        <p>© 2025 Spam Detective | Protecting Your Inbox</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('emailForm');
+            const loader = document.getElementById('loader');
+            const resultContainer = document.getElementById('resultContainer');
+            const textArea = document.getElementById('email-content');
+            const checkButton = document.getElementById('checkButton');
+            
+            // Sample email content triggers
+            const sampleContent = {
+                urgent: "URGENT ACTION REQUIRED: Your account will be SUSPENDED in 24 HOURS unless you VERIFY your information NOW! Click here immediately: http://verify-account.suspicious-link.com",
+                offer: "CONGRATULATIONS! You've been selected for our EXCLUSIVE OFFER! 90% OFF on all products for the next 2 HOURS ONLY! Limited stock available!",
+                money: "Dear Sir/Madam, I am Mr. Johnson, a banker with BANK OF AFRICA. I have a business proposal for you regarding the transfer of $10,500,000 USD. Please respond urgently and keep this confidential.",
+                winner: "YOU ARE OUR LUCKY WINNER! You've won $5,000,000 in our international lottery! To claim your prize, send us your personal details and a processing fee of $100."
+            };
+            
+            // Add sample content to textarea
+            document.querySelectorAll('.sample-button').forEach(button => {
+                button.addEventListener('click', function() {
+                    const sampleType = this.getAttribute('data-sample');
+                    textArea.value += (textArea.value ? "\n\n" : "") + sampleContent[sampleType];
+                });
+            });
+            
+            // Simulate loading and analysis
+            form.addEventListener('submit', function(e) {
+                // Only add this simulation effect when JS is enabled
+                // For actual form submission, we'll allow it to proceed
+                
+                // Display loading animation
+                loader.style.display = 'block';
+                checkButton.disabled = true;
+                
+                // Hide any existing result
+                resultContainer.classList.remove('visible');
+                
+                // For demo purposes - this would be replaced by the actual backend processing
+                // In reality, we'd let the form submit normally
+                
+                // Only simulate if we're not in a backend templating context
+                if (!("{{ prediction }}")) {
+                    e.preventDefault(); // Prevent actual form submission for simulation
+                    
+                    setTimeout(function() {
+                        loader.style.display = 'none';
+                        checkButton.disabled = false;
+                        
+                        // Simple frontend-only spam detection for demo
+                        const text = textArea.value.toLowerCase();
+                        const spamKeywords = ['urgent', 'winner', 'congratulations', 'offer', 'limited time', 
+                                             'exclusive', 'click here', 'money', 'bank transfer', 'verify',
+                                             'account suspended', 'password', 'credit card'];
+                        
+                        let spamScore = 0;
+                        spamKeywords.forEach(keyword => {
+                            if (text.includes(keyword)) spamScore++;
+                        });
+                        
+                        resultContainer.className = 'result visible';
+                        
+                        if (spamScore >= 3) {
+                            resultContainer.classList.add('spam');
+                            resultContainer.innerHTML = `
+                                <h2><span class="result-icon">⚠️</span> <span style="color: var(--danger);">Spam Detected!</span></h2>
+                                <p>This email shows characteristics commonly found in spam messages.</p>
+                            `;
+                        } else {
+                            resultContainer.classList.add('not-spam');
+                            resultContainer.innerHTML = `
+                                <h2><span class="result-icon">✅</span> <span style="color: var(--success);">Not Spam</span></h2>
+                                <p>This email appears to be legitimate. Always stay vigilant!</p>
+                            `;
+                        }
+                    }, 1500);
+                }
+            });
+        });
+    </script>
 </body>
 </html>
