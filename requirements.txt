@@ -1,6 +1,4 @@
 Flask
 scikit-learn
-pandas
 numpy
 protobuf
-opencv-python-headless
